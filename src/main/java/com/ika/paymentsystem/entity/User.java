@@ -1,4 +1,4 @@
-package entity;
+package com.ika.paymentsystem.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

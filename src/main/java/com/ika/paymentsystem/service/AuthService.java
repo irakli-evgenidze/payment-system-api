@@ -3,6 +3,7 @@ package com.ika.paymentsystem.service;
 import com.ika.paymentsystem.entity.User;
 import com.ika.paymentsystem.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public boolean register(String email, String password) {
         if (userRepository.existsByEmail(email)) {
@@ -18,7 +20,7 @@ public class AuthService {
 
         User user = User.builder()
                 .email(email)
-                .password(password) // later we hash this
+                .password(passwordEncoder.encode(password))
                 .role("USER")
                 .build();
 
@@ -28,7 +30,7 @@ public class AuthService {
 
     public User login(String email, String password) {
         return userRepository.findByEmail(email)
-                .filter(user -> user.getPassword().equals(password))
+                .filter(user -> passwordEncoder.matches(password, user.getPassword()))
                 .orElse(null);
     }
 }

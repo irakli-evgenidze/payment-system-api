@@ -1,7 +1,10 @@
 package com.ika.paymentsystem.controller;
 
+import com.ika.paymentsystem.dto.LoginRequest;
+import com.ika.paymentsystem.dto.RegisterRequest;
 import com.ika.paymentsystem.entity.User;
 import com.ika.paymentsystem.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,8 +16,8 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public String register(@RequestParam String email, @RequestParam String password) {
-        boolean success = authService.register(email, password);
+    public String register(@RequestBody @Valid RegisterRequest request) {
+        boolean success = authService.register(request.getEmail(), request.getPassword());
 
         if (success) {
             return "User registered successfully";
@@ -24,8 +27,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestParam String email, @RequestParam String password) {
-        User user = authService.login(email, password);
+    public String login(@RequestBody @Valid LoginRequest request) {
+        User user = authService.login(request.getEmail(), request.getPassword());
 
         if (user != null) {
             return "Login successful";

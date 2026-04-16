@@ -30,7 +30,40 @@ public class AuthService {
 
     public User login(String email, String password) {
         return userRepository.findByEmail(email)
-                .filter(user -> passwordEncoder.matches(password, user.getPassword()))
+                .filter(user -> isPasswordValid(user, password))
+                .map(user -> upgradePasswordIfNeeded(user, password))
                 .orElse(null);
+    }
+
+    private boolean isPasswordValid(User user, String rawPassword) {
+        String storedPassword = user.getPassword();
+
+        if (storedPassword == null || storedPassword.isBlank()) {
+            return false;
+        }
+
+        if (looksLikeBcrypt(storedPassword)) {
+            return passwordEncoder.matches(rawPassword, storedPassword);
+        }
+
+        // legacy plain-text support
+        return storedPassword.equals(rawPassword);
+    }
+
+    private User upgradePasswordIfNeeded(User user, String rawPassword) {
+        String storedPassword = user.getPassword();
+
+        if (!looksLikeBcrypt(storedPassword)) {
+            user.setPassword(passwordEncoder.encode(rawPassword));
+            userRepository.save(user);
+        }
+
+        return user;
+    }
+
+    private boolean looksLikeBcrypt(String password) {
+        return password.startsWith("$2a$")
+                || password.startsWith("$2b$")
+                || password.startsWith("$2y$");
     }
 }
